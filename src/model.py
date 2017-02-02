@@ -77,6 +77,8 @@ def train_model(mnist, bounds_train, bounds_validation):
             keep_prob: 0.5,
         })
 
+    print("Training accuracy {:.4f}".format(accuracy.eval(feed_dict={
+        x: mnist.train.images, y: bounds_train, keep_prob: 1.0})))
     print("Validation accuracy {:.4f}".format(accuracy.eval(feed_dict={
         x: mnist.validation.images, y: bounds_validation, keep_prob: 1.0})))
 
