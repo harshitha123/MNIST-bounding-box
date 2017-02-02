@@ -22,7 +22,7 @@ def max_pool_2x2(x):
         x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
 
-def train_model(batch_X_train, X_validation,
+def train_model(lr, batch_X_train, X_validation,
                 batch_bounds_train, bounds_validation):
 
     X_train = np.concatenate(batch_X_train)
@@ -81,7 +81,7 @@ def train_model(batch_X_train, X_validation,
     iou = tf.reduce_mean(tf.divide(
         area_inner, tf.add(area_outer1, area_outer2 - area_inner)))
 
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(-1 * iou)
+    train_step = tf.train.AdamOptimizer(lr).minimize(-1 * iou)
     accuracy = iou
     sess.run(tf.global_variables_initializer())
     for i in range(len(batch_X_train)):

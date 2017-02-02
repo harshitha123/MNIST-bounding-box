@@ -20,6 +20,8 @@ mnist = input_data.read_data_sets(
 parser = argparse.ArgumentParser(description='MNIST bounding box parameters')
 parser.add_argument('--batch-size', type=int, default=50, metavar='N',
                     help='input batch size for training (default: 50)')
+parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
+                    help='learning rate (default: 0.001)')
 parser.add_argument('--background-noise', action='store_true', default=False,
                     help='add randomnoise to background')
 args = parser.parse_args()
@@ -67,7 +69,8 @@ batch_bounds_train = np.split(
 ____section____('Learn and predict bounding box')
 start = time.time()
 pred_validation = model.train_model(
-    batch_X_train, X_validation, batch_bounds_train, bounds_validation)
+    args.lr, batch_X_train, X_validation,
+    batch_bounds_train, bounds_validation)
 print('Training completed in {:.0f} seconds'.format(time.time() - start))
 
 bounding_box_grid_estimated = utils.plot_bounding_grid(
