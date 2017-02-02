@@ -1,3 +1,4 @@
+from __future__ import division
 import tensorflow as tf
 import numpy as np
 
@@ -58,11 +59,30 @@ def train_model(batch_X_train, X_validation,
     b_fc2 = bias_variable([4])
 
     y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
-    loss = tf.sqrt(tf.reduce_mean(tf.square(y_conv - y)))
 
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
-    correct_prediction = tf.reduce_mean(tf.squared_difference(y_conv, y), 1)
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    x_inner_lower = tf.maximum(y_conv[:, 0], y[:, 0])
+    x_inner_upper = tf.minimum(y_conv[:, 1], y[:, 1])
+    y_inner_lower = tf.maximum(y_conv[:, 2], y[:, 2])
+    y_inner_upper = tf.minimum(y_conv[:, 3], y[:, 3])
+
+    area_inner = tf.multiply(
+        tf.subtract(x_inner_upper, x_inner_lower) + 1,
+        tf.subtract(y_inner_upper, y_inner_lower) + 1,
+    )
+    area_outer1 = tf.multiply(
+        tf.subtract(y_conv[:, 1], y_conv[:, 0]) + 1,
+        tf.subtract(y_conv[:, 3], y_conv[:, 2]) + 1,
+    )
+    area_outer2 = tf.multiply(
+        tf.subtract(y[:, 1], y[:, 0]) + 1,
+        tf.subtract(y[:, 3], y[:, 2]) + 1,
+    )
+
+    iou = tf.reduce_mean(tf.divide(
+        area_inner, tf.add(area_outer1, area_outer2 - area_inner)))
+
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(-1 * iou)
+    accuracy = iou
     sess.run(tf.global_variables_initializer())
     for i in range(len(batch_X_train)):
         if i % 50 == 0:
