@@ -86,7 +86,7 @@ def plot_bounding_grid(df, subplot_shape, bounding_boxes):
         ax.plot(x_bound, [y_bound[1]] * 2, color='r')
 
     fig.tight_layout()
-    fig.subplots_adjust(wspace=-.18, hspace=-.18)
+    fig.subplots_adjust(wspace=-.1, hspace=-.1)
     return fig
 
 
