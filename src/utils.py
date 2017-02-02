@@ -110,3 +110,10 @@ def get_bounding_boxes(mnist):
     bounds_test = get_data_to_box(test) * 1. / 28
 
     return bounds_train, bounds_validation, bounds_test
+
+
+def add_background_noise(df, treshold=.01, scale=1.):
+    noise_mask = df < treshold
+    noise_overlay = np.divide(
+        noise_mask, (1 + np.exp(np.random.normal(size=df.shape))))
+    return df + noise_overlay

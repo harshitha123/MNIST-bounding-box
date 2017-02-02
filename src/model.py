@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 
 def weight_variable(shape):
@@ -20,9 +21,14 @@ def max_pool_2x2(x):
         x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
 
-def train_model(mnist, bounds_train, bounds_validation):
+def train_model(batch_X_train, X_validation,
+                batch_bounds_train, bounds_validation):
+
+    X_train = np.concatenate(batch_X_train)
+    bounds_train = np.concatenate(batch_bounds_train)
+
     sess = tf.InteractiveSession()
-    x = tf.placeholder(tf.float32, shape=[None, 784])
+    x = tf.placeholder(tf.float32, shape=[None, 28, 28])
     y = tf.placeholder(tf.float32, shape=[None, 4])
 
     W_conv1 = weight_variable([5, 5, 1, 32])
@@ -52,36 +58,36 @@ def train_model(mnist, bounds_train, bounds_validation):
     b_fc2 = bias_variable([4])
 
     y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
-
     loss = tf.sqrt(tf.reduce_mean(tf.square(y_conv - y)))
+
     train_step = tf.train.AdamOptimizer(1e-4).minimize(loss)
     correct_prediction = tf.reduce_mean(tf.squared_difference(y_conv, y), 1)
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     sess.run(tf.global_variables_initializer())
-    for i in range(400):
-        batch = mnist.train.next_batch(50)
+    for i in range(len(batch_X_train)):
         if i % 50 == 0:
             train_accuracy = accuracy.eval(feed_dict={
-                x: batch[0],
-                y: bounds_train[i * 50: (i + 1) * 50],
+                x: batch_X_train[i],
+                y: batch_bounds_train[i],
                 keep_prob: 1.,
             })
             validation_accuracy = accuracy.eval(feed_dict={
-                x: mnist.validation.images, y: bounds_validation, keep_prob: 1.
+                x: X_validation, y: bounds_validation, keep_prob: 1.
             })
             print("Step {}, training accuracy {:.4f}, validation accuracy: "
                   "{:.4f}".format(i, train_accuracy, validation_accuracy))
         train_step.run(feed_dict={
-            x: batch[0],
-            y: bounds_train[i * 50: (i + 1) * 50],
+            x: batch_X_train[i],
+            y: batch_bounds_train[i],
             keep_prob: 0.5,
         })
 
     print("Training accuracy {:.4f}".format(accuracy.eval(feed_dict={
-        x: mnist.train.images, y: bounds_train, keep_prob: 1.0})))
+        x: X_train, y: bounds_train, keep_prob: 1.0})))
     print("Validation accuracy {:.4f}".format(accuracy.eval(feed_dict={
-        x: mnist.validation.images, y: bounds_validation, keep_prob: 1.0})))
+        x: X_validation, y: bounds_validation, keep_prob: 1.0})))
 
     pred_validation = y.eval(feed_dict={
-        x: mnist.validation.images, y: bounds_validation, keep_prob: 1.0})
+        x: X_validation, y: bounds_validation, keep_prob: 1.0})
+
     return pred_validation
